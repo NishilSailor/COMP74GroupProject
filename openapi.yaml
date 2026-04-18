@@ -1,0 +1,322 @@
+openapi: 3.0.0
+info:
+  title: Library Management API
+  description: A REST API for managing books, library members, and book loans.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000
+
+paths:
+
+  # BOOKS 
+
+  /books:
+    get:
+      summary: Get all books
+      description: Returns a paginated list of books. You can filter by genre.
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Page number
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Number of results per page
+        - in: query
+          name: genre
+          schema:
+            type: string
+          description: Filter books by genre (e.g. Fiction, Dystopian)
+      responses:
+        "200":
+          description: List of books returned successfully
+
+    post:
+      summary: Add a new book
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, author]
+              properties:
+                title:
+                  type: string
+                  example: "The Hobbit"
+                author:
+                  type: string
+                  example: "J.R.R. Tolkien"
+                genre:
+                  type: string
+                  example: "Fantasy"
+                total_copies:
+                  type: integer
+                  example: 3
+      responses:
+        "201":
+          description: Book created successfully
+        "400":
+          description: Missing required fields
+
+  /books/{id}:
+    get:
+      summary: Get a single book by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Book found
+        "404":
+          description: Book not found
+
+    put:
+      summary: Update a book
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                author:
+                  type: string
+                genre:
+                  type: string
+                total_copies:
+                  type: integer
+                available_copies:
+                  type: integer
+      responses:
+        "200":
+          description: Book updated
+        "404":
+          description: Book not found
+
+    delete:
+      summary: Delete a book
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Book deleted
+        "404":
+          description: Book not found
+
+  # MEMBERS 
+
+  /members:
+    get:
+      summary: Get all members
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+      responses:
+        "200":
+          description: List of members returned successfully
+
+    post:
+      summary: Register a new member
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email]
+              properties:
+                name:
+                  type: string
+                  example: "John Doe"
+                email:
+                  type: string
+                  example: "john@email.com"
+                phone:
+                  type: string
+                  example: "555-0199"
+      responses:
+        "201":
+          description: Member created
+        "400":
+          description: Missing required fields
+        "409":
+          description: Email is already in use
+
+  /members/{id}:
+    get:
+      summary: Get a single member by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Member found
+        "404":
+          description: Member not found
+
+    put:
+      summary: Update a member's details
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                phone:
+                  type: string
+      responses:
+        "200":
+          description: Member updated
+        "404":
+          description: Member not found
+
+    delete:
+      summary: Delete a member
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Member deleted
+        "404":
+          description: Member not found
+
+  # LOANS 
+
+  /loans:
+    get:
+      summary: Get all loans
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+        - in: query
+          name: member_id
+          schema:
+            type: integer
+          description: Filter loans by member ID
+      responses:
+        "200":
+          description: List of loans returned successfully
+
+    post:
+      summary: Borrow a book (create a loan)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [book_id, member_id]
+              properties:
+                book_id:
+                  type: integer
+                  example: 1
+                member_id:
+                  type: integer
+                  example: 2
+      responses:
+        "201":
+          description: Loan created successfully
+        "400":
+          description: No copies available or missing fields
+        "404":
+          description: Book or member not found
+
+  /loans/{id}:
+    get:
+      summary: Get a single loan by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Loan found
+        "404":
+          description: Loan not found
+
+    put:
+      summary: Return a book (marks the loan as returned)
+      description: Sets today's date as the return date and adds the copy back to available copies.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Book returned successfully
+        "400":
+          description: Book was already returned
+        "404":
+          description: Loan not found
+
+    delete:
+      summary: Delete a loan record
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Loan deleted
+        "404":
+          description: Loan not found
