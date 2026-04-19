@@ -39,6 +39,7 @@ db.run(`
 
 const { count } = db.query("SELECT COUNT(*) as count FROM books").get();
 
+//(Sample Data)
 if (count === 0) {
   db.run(`
     INSERT INTO books (title, author, genre, total_copies, available_copies) VALUES
